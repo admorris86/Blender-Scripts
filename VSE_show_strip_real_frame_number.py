@@ -12,6 +12,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+### About This Script ###
+
+When working with scene strips in the VSE, Blender by default doesn't 
+give any feedback as to which frame number of a scene strip is under 
+the playhead. Instead, it mostly displays information about the strip 
+in the context of the sequence, which isn't particularly useful.
+
+Knowing the "real" frame number or timecode of a scene strip is vital
+should you want make changes to the internal scene at the specific 
+frame beneath the playhead, or between a specific range of frames i.e.
+the frames between the in and out point of the strip.
+
 ### Known Issues ###
 
 - Deleting the selected scene strip throws up an error: The code needs
@@ -22,25 +34,25 @@ into account: This is potentially something that could be added.
 
 """
 import bpy
-import os
+from bpy.utils import smpte_from_frame
 
 class RealFrameNumberDisplay(bpy.types.Panel):
-    bl_label = "Strip Frame Number"
-    bl_idname = "VSE_Strip_realframe"
+    bl_label = "Strip Time Data"
+    bl_idname = "VSE_strip_time_data"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
     bl_category = 'Strip'
-
+    
     @classmethod
     def poll(cls, context):
         if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
             return context.scene.sequence_editor.active_strip.type == 'SCENE'
         else:
             return False
-
+    
     def draw(self, context):
         layout = self.layout
-
+        
         # get the active scene
         scn = bpy.context.scene
 
@@ -63,20 +75,40 @@ class RealFrameNumberDisplay(bpy.types.Panel):
 
         # calculate the real frame number of the strip
         realFrameNum = realStripStart + stripOffset + frameOfStrip
-
+        
+        # Header
+        row = layout.row()
+        row.label(text="Frame Number")
+        
         # Display scene frame number
         row = layout.row()
         row.label(text="Scene Frame: " + str(scn.frame_current), icon='SEQUENCE')
-
+        
         # Display strip internal frame number
         row = layout.row()
-        row.label(text="Strip Frame (internal): " + str(realFrameNum), icon='SEQUENCE')
-
+        row.label(text="Strip Frame (internal): " + str(realFrameNum), icon='SCENE_DATA')
+        
         # Display selected strip frame number
         row = layout.row()
-        row.label(text="Strip Frame (selected): " + str(frameOfStrip), icon='SEQUENCE')
-
-        # Update output on scene frame change
+        row.label(text="Strip Frame (selected): " + str(frameOfStrip), icon='SEQ_STRIP_DUPLICATE')
+        
+        # Header
+        row = layout.row()
+        row.label(text="Time Code")
+        
+        # Display scene time code
+        row = layout.row()
+        row.label(text="Scene Time: " + smpte_from_frame(scn.frame_current), icon='SEQUENCE')
+        
+        # Display strip internal time code
+        row = layout.row()
+        row.label(text="Strip Time (internal): " + smpte_from_frame(realFrameNum), icon='SCENE_DATA')
+        
+        # Display selected strip time code
+        row = layout.row()
+        row.label(text="Strip Time (selected): " + smpte_from_frame(frameOfStrip), icon='SEQ_STRIP_DUPLICATE')
+             
+        # Update output on scene frame change    
         bpy.app.handlers.frame_change_pre.append(draw)
 
 def register():
