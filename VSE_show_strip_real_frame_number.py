@@ -42,14 +42,14 @@ class RealFrameNumberDisplay(bpy.types.Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
     bl_category = 'Strip'
-    
+    '''
     @classmethod
     def poll(cls, context):
         if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
             return context.scene.sequence_editor.active_strip.type == 'SCENE'
         else:
             return False
-    
+    '''
     def draw(self, context):
         layout = self.layout
         
@@ -76,7 +76,7 @@ class RealFrameNumberDisplay(bpy.types.Panel):
         # calculate the real frame number of the strip
         realFrameNum = realStripStart + stripOffset + frameOfStrip
         
-        # Header
+        # 
         row = layout.row()
         row.label(text="Frame Number")
         
@@ -92,24 +92,24 @@ class RealFrameNumberDisplay(bpy.types.Panel):
         row = layout.row()
         row.label(text="Strip Frame (selected): " + str(frameOfStrip), icon='SEQ_STRIP_DUPLICATE')
         
-        # Header
+        # 
         row = layout.row()
         row.label(text="Time Code")
         
-        # Display scene time code
+        # Display scene frame number
         row = layout.row()
         row.label(text="Scene Time: " + smpte_from_frame(scn.frame_current), icon='SEQUENCE')
         
-        # Display strip internal time code
+        # Display strip internal frame number
         row = layout.row()
         row.label(text="Strip Time (internal): " + smpte_from_frame(realFrameNum), icon='SCENE_DATA')
         
-        # Display selected strip time code
+        # Display selected strip frame number
         row = layout.row()
         row.label(text="Strip Time (selected): " + smpte_from_frame(frameOfStrip), icon='SEQ_STRIP_DUPLICATE')
              
-        # Update output on scene frame change    
-        bpy.app.handlers.frame_change_pre.append(draw)
+    # Update output on scene frame change    
+    bpy.app.handlers.frame_change_pre.append(draw)
 
 def register():
     bpy.utils.register_class(RealFrameNumberDisplay)
